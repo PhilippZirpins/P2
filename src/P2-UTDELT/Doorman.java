@@ -14,11 +14,13 @@ public class Doorman implements Runnable {
 	private CustomerQueue queue;
 	private Gui gui;
 
-	private Doorman doorman;
+	private Thread thread;
+	private boolean running;
 
 	public Doorman(CustomerQueue queue, Gui gui) {
 		this.queue = queue;
 		this.gui = gui;
+		this.running = false;
 	}
 
 	/**
@@ -28,16 +30,19 @@ public class Doorman implements Runnable {
 	@Override
 	public void run(){
 		// Incomplete
-		if (queue.getFifo().getFreeSeats() > 0){
-			queue.add(new Customer());
-			notify(); //Notify consumer about the new custommer, does this actually notify the consumer?
-		}
-		// If no seats left go into blocked state
-		else{
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		while(running){
+
+			if (queue.getFifo().getFreeSeats() > 0){
+				queue.add(new Customer());
+				notify(); //Notify consumer about the new customer, does this actually notify the consumer?
+			}
+			// If no seats left go into blocked state
+			else{
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -51,8 +56,9 @@ public class Doorman implements Runnable {
 	 */
 	public void startThread() {
 		// Incomplete
-
-
+		running = true;
+		thread = new Thread(this, "Doorman");
+		thread.start();
 	}
 
 	/**
@@ -61,11 +67,15 @@ public class Doorman implements Runnable {
 	 */
 	public void stopThread() {
 		// Incomplete
-
+		running = false;
+		thread.interrupt();
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		//after trying to add new customer, sleep
 		gui.println("Doorman sleeping");
-
-
 	}
 
 	// Add more methods as needed

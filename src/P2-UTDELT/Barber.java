@@ -63,11 +63,15 @@ public class Barber implements Runnable {
 	private Gui gui;
 	private int pos;
 
+	private boolean running;
+	Thread thread;
+
 	public Barber(CustomerQueue queue, Gui gui, int pos) { 
 		// Incomplete
 		this.queue = queue;
 		this.gui = gui;
 		this.pos = pos;
+		this.running = false;
 	}
 
 	/**
@@ -77,25 +81,26 @@ public class Barber implements Runnable {
 	@Override
 	public void run(){
 
-
-		if (queue.getFifo().isAnyCustomerThere()){
-			Customer currentCustomer = queue.getFifo().getCustomer();
-			gui.fillBarberChair(pos, currentCustomer);
-			gui.println("Customer: " + currentCustomer + " takes barber seat: " + pos);
-			notify(); //Notify the doorman thread, does that actually do that?
-		}
-		// If no customers there, go to sleep
-		else{
-			try {
-				wait();
-				gui.barberIsSleeping(pos);
-				gui.println("Barber seat " + pos + " emptied, barber fell asleep.");
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		while(running){
+			if (queue.getFifo().isAnyCustomerThere()){
+				Customer currentCustomer = queue.getFifo().getCustomer();
+				gui.fillBarberChair(pos, currentCustomer);
+				gui.println("Customer: " + currentCustomer + " takes barber seat: " + pos);
+				notify(); //Notify the doorman thread, does that actually do that?
 			}
-		}
+			// If no customers there, go to sleep
+			else{
+				try {
+					wait();
+					gui.barberIsSleeping(pos);
+					gui.println("Barber seat " + pos + " emptied, barber fell asleep.");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 
-		// Incomplete
+			// Incomplete
+		}
 	}
 
 	/**
@@ -103,6 +108,9 @@ public class Barber implements Runnable {
 	 */
 	public void startThread() {
 		// Incomplete
+		running = true;
+		thread = new Thread(this, "Barber");
+		thread.start();
 		gui.barberIsAwake(pos);
 		gui.println("Barber " + pos + " woke up.");
 	}
@@ -113,8 +121,6 @@ public class Barber implements Runnable {
 	public void stopThread() {
 		// Incomplete
 		gui.emptyBarberChair(pos);
-
-
 	}
 
 	// Add more methods as needed
