@@ -54,7 +54,7 @@ public class Doorman implements Runnable {
 					e.printStackTrace();
 					stopThread();
 				}
-				gui.println("done dreaming");
+				gui.println("Done dreaming");
 			}
 			// Else, no seats are empty, go into blocked state and wait until consumers free a seat/are done with a customer
 			else{

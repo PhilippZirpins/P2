@@ -103,6 +103,9 @@ public class Barber implements Runnable {
 					stopThread();
 				}
 
+				//Work done, empty chair in gui
+				gui.emptyBarberChair(pos);
+
 				//Now daydream for som random amount of time, thus we have to update the gui
 				try {
 					gui.barberIsSleeping(pos);
