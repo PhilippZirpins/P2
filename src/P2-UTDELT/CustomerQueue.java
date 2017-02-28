@@ -11,43 +11,70 @@ public class CustomerQueue {
 	private int queueLength;
 	private Gui gui;
 
-	private RingBuffer fifo;
+	private Customer[] customers = null;
+
+	private int writePosition = 0;
+	private int readPosition = 0;
+	private int seatsTaken = 0;
 
 
     public CustomerQueue(int queueLength, Gui gui){
 		this.queueLength = queueLength;
-		this.fifo = new RingBuffer(queueLength);
+		this. customers = new Customer[queueLength];
 		this.gui = gui;
 	}
 
-	public void add(Customer customer){
-    	//If true returned, the customer was inserted
-		if (fifo.insertCustomer(customer)){
+	public boolean addCustomer(Customer customer){
+		//If false, we can't insert any new customers
+		if (isAnySeatEmpty()){
+			//If true, check if reading position exceeds the max capacity (index out of bounds)
+			if (writePosition >= queueLength){
+				writePosition = 0;
+			}
+			//Insert new customer
+			customers[writePosition] = customer;
+
 			//Update gui
-			gui.fillLoungeChair(fifo.getWritePosition() - 1, customer);
-			gui.println("Chair filled: " + (fifo.getWritePosition() - 1) + " by customer: " + customer);
+			gui.fillLoungeChair(writePosition, customer);
+			gui.println("Customer    " + customer + " filled chair " + (writePosition + 1));
+
+			//Update  variables
+			writePosition++;
+			seatsTaken++;
+
+			return true;
 		}
-		//Else, there is no seat left in the barber shop
-		else{
-			gui.println("No seats left.");
-		}
+		//If we can't insert, then no seats left
+		gui.println("No seats left.");
+		return false;
 	}
 
-	public Customer next(){
-		Customer nextCustomer = fifo.getCustomer();
-
-		//Check if there are customers left in the barber shop
-		if (nextCustomer == null){
-			gui.println("No customers in the barber shop.");
-			return null;
+	public Customer getNextCustomer(){
+		//Check if reading position exceeds the max capacity (index out of bounds)
+		if (readPosition >= queueLength){
+			readPosition = 0;
 		}
-		//If so, update gui and return the customer object
-		gui.println("Customer: " + nextCustomer + " leaves seat: " + (fifo.getReadPosition() - 1));
-		gui.emptyLoungeChair(fifo.getReadPosition() - 1);
-		return nextCustomer;
+		//If false, there are no more customers in the list
+		if (customers[readPosition] != null){
+			//If true, get customer, free the seat he/she took, and update gui
+			Customer customer = customers[readPosition];
+			gui.println("Customer    " + customer + " leaves seat " + (readPosition + 1));
+
+			customers[readPosition] = null;
+			gui.emptyLoungeChair(readPosition);
+
+			//Update variables
+			readPosition++;
+			seatsTaken--;
+
+			return customer;
+		}
+		gui.println("No customers in the barber shop.");
+		return null;
 	}
 
-	public RingBuffer getFifo(){
-		return fifo;
-	}
+	public boolean isAnySeatEmpty(){ return (queueLength - seatsTaken) > 0; }
+
+	public boolean isThereAtLeastOneCustomer(){ return seatsTaken > 0; }
+
 }

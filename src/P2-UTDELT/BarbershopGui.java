@@ -154,7 +154,7 @@ public class BarbershopGui extends JFrame implements Gui, ChangeListener {
 
 	/**
 	 * Creates, adds and positions labels above a slider.
-	 * @param p			The panel to add the labels to.
+	 * @param p			The panel to addCustomer the labels to.
 	 * @param x			The x position of the leftmost label.
 	 * @param y			The y position of the topmost label.
 	 * @param w			The width from leftmost label to rightmost pixel of the rightmost label

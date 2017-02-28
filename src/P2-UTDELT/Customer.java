@@ -8,7 +8,7 @@ import javax.swing.*;
  * It should not be necessary to edit this class (but feel free to do so if you wish).
  */
 public class Customer {
-	/** The ID of the next customer to be created */
+	/** The ID of the getNextCustomer customer to be created */
 	public static int nextID = 0;
 	/** The ID of this customer */
 	private int customerID;
@@ -37,5 +37,9 @@ public class Customer {
 	 */
 	public Image getImage(){
 		return BarbershopGui.customerImages[customerLook];
+	}
+
+	public String toString(){
+		return Integer.toString(getCustomerID());
 	}
 }

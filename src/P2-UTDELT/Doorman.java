@@ -14,7 +14,7 @@ public class Doorman implements Runnable {
 	private CustomerQueue queue;
 	private Gui gui;
 
-	private Doorman doorman;
+	private Thread thread;
 
 	public Doorman(CustomerQueue queue, Gui gui) {
 		this.queue = queue;
@@ -26,23 +26,48 @@ public class Doorman implements Runnable {
 	 * created for this instance.
 	 */
 	@Override
-	public void run(){
-		// Incomplete
-		if (queue.getFifo().getFreeSeats() > 0){
-			queue.add(new Customer());
-			notify(); //Notify consumer about the new custommer, does this actually notify the consumer?
-		}
-		// If no seats left go into blocked state
-		else{
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+	public synchronized void run(){
+
+		while(true){
+
+			// If any seat is empty, then we can add a customer
+			if (queue.isAnySeatEmpty()){
+				gui.println("Doorman notified about free seats.");
+				//Create new customer
+				Customer newCustomer = new Customer();
+
+				//Say that new customer arrived
+				gui.println("Customer    " + newCustomer + " arrived.");
+
+				//Add customer to queue (gui updated inside that method)
+				queue.addCustomer(newCustomer);
+
+				//Notify a random consumer about the new customer
+				notify();
+
+				//The customer was added to the queue and a consumer was notified about it, now daydream
+				try {
+					gui.println("Doorman daydreaming");
+					Thread.sleep((int)(Math.random()*Globals.doormanSleep));
+				} catch (InterruptedException e) {
+					//If something crashes shut down appropriately
+					e.printStackTrace();
+					stopThread();
+				}
+				gui.println("done dreaming");
+			}
+			// Else, no seats are empty, go into blocked state and wait until consumers free a seat/are done with a customer
+			else{
+				gui.println("Full house!");
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					//If something crashes shut down appropriately
+					e.printStackTrace();
+					stopThread();
+				}
 			}
 		}
-
-
-
 	}
 
 	/**
@@ -50,23 +75,21 @@ public class Doorman implements Runnable {
 	 * sure to create the thread and start it.
 	 */
 	public void startThread() {
-		// Incomplete
-
-
+		//Create and start new thread
+		thread = new Thread(this);
+		thread.start();
 	}
 
 	/**
 	 * Stops the doorman thread. Use Thread.join() for stopping
 	 * a thread.
 	 */
-	public void stopThread() {
-		// Incomplete
-
-		//after trying to add new customer, sleep
-		gui.println("Doorman sleeping");
-
-
+	public void stopThread(){
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
-
 	// Add more methods as needed
 }

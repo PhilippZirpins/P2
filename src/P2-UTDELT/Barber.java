@@ -2,12 +2,6 @@
 Produsent og konsument synkroniseres ved hjelp av metodene wait() og notify(),
 og gjensidig utelukkelse implementeres via Javas monitorkonsept; dvs. synchronized funksjoner.
 
-Produsent = Doorman
-Consumer = Barber
-
-Wait, notify, and notifyAll belongs to the class Object. Remember that all
-Java objects are a subclass of Object.
-
 Wait, notify, and notifyAll can only be called by the thread that owns the
 monitor of the object. Ownership of an object's monitor is given by the
 synchronized keyword.
@@ -23,14 +17,6 @@ was blocked.
 
 notify evokes a random thread waiting for the monitor
 notifyAll wakes all threads waiting for the monitor
-Note: Always think carefully how to wake up threads.
-	Improper use can lock the whole program
-
-Thread.sleep(time)
-• Static method
-• Puts the thread in a timed wait state
-• Sleeps for a given period of time before returning to a runnable state
-
 
 Producer
 • The producer adds items to a buffer as long as it is not full. If it is, the
@@ -39,10 +25,11 @@ producer should block.
 consumer has removed an item from the buffer. Thus, the producer can
 continue.
 
-• Consumer
+Consumer
 • If the buffer is empty, the consumer should be blocked.
 • When producer has added additional elements to the buffer, the consumer should
 be awakened (notify / notifyAll).
+
 */
 
 /**
@@ -63,6 +50,8 @@ public class Barber implements Runnable {
 	private Gui gui;
 	private int pos;
 
+	private Thread thread;
+
 	public Barber(CustomerQueue queue, Gui gui, int pos) { 
 		// Incomplete
 		this.queue = queue;
@@ -75,48 +64,96 @@ public class Barber implements Runnable {
 	 * created for this instance.
 	 */
 	@Override
-	public void run(){
+	public synchronized void run(){
+		while (true){
 
-
-		if (queue.getFifo().isAnyCustomerThere()){
-			Customer currentCustomer = queue.getFifo().getCustomer();
-			gui.fillBarberChair(pos, currentCustomer);
-			gui.println("Customer: " + currentCustomer + " takes barber seat: " + pos);
-			notify(); //Notify the doorman thread, does that actually do that?
-		}
-		// If no customers there, go to sleep
-		else{
+			//Let barber wait for new customers
 			try {
+				//Now wait until notified
 				wait();
-				gui.barberIsSleeping(pos);
-				gui.println("Barber seat " + pos + " emptied, barber fell asleep.");
+
+				//Update gui first
+				gui.barberIsAwake(pos);
+				gui.println("Barber         " + pos + " notified of a new customer.");
+
 			} catch (InterruptedException e) {
+				//If something crashes shut down appropriately
 				e.printStackTrace();
+				stopThread();
+			}
+
+			//Check if there is at least one customer
+			if (queue.isThereAtLeastOneCustomer()){
+				//Get the getNextCustomer customer
+				Customer currentCustomer = queue.getNextCustomer();
+
+				//Update the gui
+				gui.fillBarberChair(pos, currentCustomer);
+				gui.println("Customer    " + currentCustomer + " takes barber seat: " + pos);
+
+				//Notify everyone (only the doorman matters here) that one seat was emptied
+				notifyAll();
+
+				//Now work in some random amount of time.
+				try {
+					Thread.sleep((int)(Math.random()*Globals.barberWork));
+				} catch (InterruptedException e) {
+					//If something crashes shut down appropriately
+					e.printStackTrace();
+					stopThread();
+				}
+
+				//Now daydream for som random amount of time, thus we have to update the gui
+				try {
+					gui.barberIsSleeping(pos);
+					Thread.sleep((int)(Math.random()*Globals.barberSleep));
+				} catch (InterruptedException e) {
+					//If something crashes shut down appropriately
+					e.printStackTrace();
+					stopThread();
+				}
+
+				//Barber is done daydreaming, update gui and wait for next customer
+				gui.barberIsAwake(pos);
+				gui.println("Barber        " + pos + " waiting for new customer.");
+			}
+			// If no customers there, wait until the doorman notifies one of the barbers
+			else{
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					//If something crashes shut down appropriately
+					e.printStackTrace();
+					stopThread();
+				}
 			}
 		}
-
-		// Incomplete
 	}
 
 	/**
 	 * Starts the barber running as a separate thread.
 	 */
 	public void startThread() {
-		// Incomplete
-		gui.barberIsAwake(pos);
-		gui.println("Barber " + pos + " woke up.");
+		//Create and start thread
+		thread = new Thread(this);
+		thread.start();
 	}
 
 	/**
 	 * Stops the barber thread.
 	 */
 	public void stopThread() {
-		// Incomplete
+		//Update gui
+
 		gui.emptyBarberChair(pos);
+		gui.println("Stopping barber thread.");
 
-
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
-
 	// Add more methods as needed
 }
 
