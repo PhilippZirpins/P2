@@ -56,9 +56,9 @@ public class Doorman implements Runnable {
 	 */
 	public void startThread() {
 		// Incomplete
-		running = true;
 		thread = new Thread(this, "Doorman");
 		thread.start();
+		running = true;
 	}
 
 	/**

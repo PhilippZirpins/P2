@@ -108,11 +108,9 @@ public class Barber implements Runnable {
 	 */
 	public void startThread() {
 		// Incomplete
-		running = true;
 		thread = new Thread(this, "Barber");
 		thread.start();
-		gui.barberIsAwake(pos);
-		gui.println("Barber " + pos + " woke up.");
+		running = true;
 	}
 
 	/**
@@ -120,6 +118,13 @@ public class Barber implements Runnable {
 	 */
 	public void stopThread() {
 		// Incomplete
+		running = false;
+		thread.interrupt();
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		gui.emptyBarberChair(pos);
 	}
 
