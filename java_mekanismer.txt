@@ -1,6 +1,6 @@
 For å implementere produsent/konsument-modellen har vi brukt:
 - Kundekøen er implementert som et sirkulært buffer med read- og write-pekere.
 - Synchronized-nøkkelordet brukt som monitorer for å hindre at trådene ødelegger for hverandres tilgang til kundekøen.
-- notify() og notifyAll() som endrer objekter fra blocked-tilstanden til ready
-- wait() som endrer objekter fra ready til blocked
-- Thread.sleep(t) som endrer objekter fra running til ready etter tiden t har gått
+- notify() og notifyAll() som endrer objekter fra blocked-tilstanden til ready.
+- wait() som endrer objekter fra ready til blocked.
+- Thread.sleep(t) som endrer objekter fra running til ready etter tiden t har gått.
