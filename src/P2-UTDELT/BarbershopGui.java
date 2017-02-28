@@ -108,7 +108,7 @@ public class BarbershopGui extends JFrame implements Gui, ChangeListener {
 		barberImage = loadImage(tk, "images/barber.gif", tracker);
 		customerImages = new Image[Constants.NOF_CUSTOMER_LOOKS];
 		for(int i = 0; i < Constants.NOF_CUSTOMER_LOOKS; i++) {
-			customerImages[i] = loadImage(tk, "images/customer"+i+".gif", tracker);
+			customerImages[i] = loadImage(tk, "images/customer" +i+".gif", tracker);
 		}
 		tableImage = loadImage(tk, "images/table.gif", tracker);
 		deskImage = loadImage(tk, "images/desk.gif", tracker);

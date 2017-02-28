@@ -52,11 +52,14 @@ public class Barber implements Runnable {
 
 	private Thread thread;
 
+	private boolean running;
+
 	public Barber(CustomerQueue queue, Gui gui, int pos) { 
 		// Incomplete
 		this.queue = queue;
 		this.gui = gui;
 		this.pos = pos;
+		this.running = false;
 	}
 
 	/**
@@ -65,7 +68,7 @@ public class Barber implements Runnable {
 	 */
 	@Override
 	public synchronized void run(){
-		while (true){
+		while (running){
 
 			//Let barber wait for new customers
 			try {
@@ -138,8 +141,10 @@ public class Barber implements Runnable {
 	 */
 	public void startThread() {
 		//Create and start thread
+
 		thread = new Thread(this);
 		thread.start();
+		running = true;
 	}
 
 	/**
@@ -151,6 +156,8 @@ public class Barber implements Runnable {
 		gui.emptyBarberChair(pos);
 		gui.println("Stopping barber thread.");
 
+		running = false;
+		thread.interrupt();
 		try {
 			thread.join();
 		} catch (InterruptedException e) {

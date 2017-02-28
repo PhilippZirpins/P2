@@ -16,9 +16,12 @@ public class Doorman implements Runnable {
 
 	private Thread thread;
 
+	private boolean running;
+
 	public Doorman(CustomerQueue queue, Gui gui) {
 		this.queue = queue;
 		this.gui = gui;
+		this.running = false;
 	}
 
 	/**
@@ -27,8 +30,7 @@ public class Doorman implements Runnable {
 	 */
 	@Override
 	public synchronized void run(){
-
-		while(true){
+		while(running){
 
 			// If any seat is empty, then we can add a customer
 			if (queue.isAnySeatEmpty()){
@@ -78,6 +80,7 @@ public class Doorman implements Runnable {
 		//Create and start new thread
 		thread = new Thread(this);
 		thread.start();
+		running = true;
 	}
 
 	/**
@@ -85,6 +88,10 @@ public class Doorman implements Runnable {
 	 * a thread.
 	 */
 	public void stopThread(){
+
+		running = false;
+		thread.interrupt();
+
 		try {
 			thread.join();
 		} catch (InterruptedException e) {
