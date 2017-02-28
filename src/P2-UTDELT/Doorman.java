@@ -29,23 +29,25 @@ public class Doorman implements Runnable {
 	 * created for this instance.
 	 */
 	@Override
-	public synchronized void run(){
+	public void run(){
 		while(running){
-
 			// If any seat is empty, then we can add a customer
 			if (queue.isAnySeatEmpty()){
 				gui.println("Doorman notified about free seats.");
 				//Create new customer
-				Customer newCustomer = new Customer();
 
-				//Say that new customer arrived
-				gui.println("Customer    " + newCustomer + " arrived.");
+				synchronized (queue){
+					Customer newCustomer = new Customer();
 
-				//Add customer to queue (gui updated inside that method)
-				queue.addCustomer(newCustomer);
+					//Say that new customer arrived
+					gui.println("Customer    " + newCustomer + " arrived.");
 
-				//Notify a random consumer about the new customer
-				notify();
+					//Add customer to queue (gui updated inside that method)
+					queue.addCustomer(newCustomer);
+
+					//Notify all consumers about the new customer
+					queue.notifyAll();
+				}
 
 				//The customer was added to the queue and a consumer was notified about it, now daydream
 				try {
@@ -62,7 +64,9 @@ public class Doorman implements Runnable {
 			else{
 				gui.println("Full house!");
 				try {
-					wait();
+					synchronized (queue){
+						queue.wait();
+					}
 				} catch (InterruptedException e) {
 					//If something crashes shut down appropriately
 					e.printStackTrace();

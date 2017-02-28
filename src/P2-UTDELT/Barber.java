@@ -54,7 +54,7 @@ public class Barber implements Runnable {
 
 	private boolean running;
 
-	public Barber(CustomerQueue queue, Gui gui, int pos) { 
+	public Barber(CustomerQueue queue, Gui gui, int pos) {
 		// Incomplete
 		this.queue = queue;
 		this.gui = gui;
@@ -67,35 +67,23 @@ public class Barber implements Runnable {
 	 * created for this instance.
 	 */
 	@Override
-	public synchronized void run(){
+	public void run(){
 		while (running){
-
-			//Let barber wait for new customers
-			try {
-				//Now wait until notified
-				wait();
-
-				//Update gui first
-				gui.barberIsAwake(pos);
-				gui.println("Barber         " + pos + " notified of a new customer.");
-
-			} catch (InterruptedException e) {
-				//If something crashes shut down appropriately
-				e.printStackTrace();
-				stopThread();
-			}
 
 			//Check if there is at least one customer
 			if (queue.isThereAtLeastOneCustomer()){
-				//Get the getNextCustomer customer
-				Customer currentCustomer = queue.getNextCustomer();
 
-				//Update the gui
-				gui.fillBarberChair(pos, currentCustomer);
-				gui.println("Customer    " + currentCustomer + " takes barber seat: " + pos);
+				synchronized (queue){
+					//Get the getNextCustomer customer
+					Customer currentCustomer = queue.getNextCustomer();
 
-				//Notify everyone (only the doorman matters here) that one seat was emptied
-				notifyAll();
+					//Update the gui
+					gui.fillBarberChair(pos, currentCustomer);
+					gui.println("Customer    " + currentCustomer + " takes barber seat: " + pos);
+
+					//Notify everyone (only the doorman matters here) that one seat was emptied
+					queue.notifyAll();
+				}
 
 				//Now work in some random amount of time.
 				try {
@@ -126,7 +114,15 @@ public class Barber implements Runnable {
 			// If no customers there, wait until the doorman notifies one of the barbers
 			else{
 				try {
-					wait();
+					//Barber ready, but no customers there
+					gui.barberIsAwake(pos);
+
+					synchronized (queue){
+						//Thus, wait/block thread
+						queue.wait();
+					}
+					//When thread state changes from blocked -> ready update gui that he was notified of a new customer
+					gui.println("Barber         " + pos + " notified of a new customer.");
 				} catch (InterruptedException e) {
 					//If something crashes shut down appropriately
 					e.printStackTrace();

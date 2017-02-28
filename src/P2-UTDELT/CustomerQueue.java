@@ -24,7 +24,7 @@ public class CustomerQueue {
 		this.gui = gui;
 	}
 
-	public boolean addCustomer(Customer customer){
+	public synchronized boolean addCustomer(Customer customer){
 		//If false, we can't insert any new customers
 		if (isAnySeatEmpty()){
 			//If true, check if reading position exceeds the max capacity (index out of bounds)
@@ -49,7 +49,7 @@ public class CustomerQueue {
 		return false;
 	}
 
-	public Customer getNextCustomer(){
+	public synchronized Customer getNextCustomer(){
 		//Check if reading position exceeds the max capacity (index out of bounds)
 		if (readPosition >= queueLength){
 			readPosition = 0;
@@ -73,8 +73,8 @@ public class CustomerQueue {
 		return null;
 	}
 
-	public boolean isAnySeatEmpty(){ return (queueLength - seatsTaken) > 0; }
+	public synchronized boolean isAnySeatEmpty(){ return (queueLength - seatsTaken) > 0; }
 
-	public boolean isThereAtLeastOneCustomer(){ return seatsTaken > 0; }
+	public synchronized boolean isThereAtLeastOneCustomer(){ return seatsTaken > 0; }
 
 }
